@@ -1,47 +1,27 @@
 ---
-title: Reporting bugs
+jetcd-core 0.5.0, my watch can't receieve nodes's change
 ---
+First, it's my watch code:
+Client client = Client.builder().endpoints(endpoints.split(",")).user(ByteSequence.from(user, DEFAULT_CHARSET))
+				.password(ByteSequence.from(password, DEFAULT_CHARSET)).build();
+		Watch watchClient = client.getWatchClient();
 
-If any part of the etcd project has bugs or documentation mistakes, please let us know by [opening an issue][etcd-issue]. We treat bugs and mistakes very seriously and believe no issue is too small. Before creating a bug report, please check that an issue reporting the same problem does not already exist.
+		Watch.Listener listener = Watch.listener(response -> {
+			for (WatchEvent event : response.getEvents()) {
+				System.out.println(System.currentTimeMillis() + ":" + "update---key=" + key + ",content=" + content);
+			}
+		});
+		watchClient.watch(ByteSequence.from("/xxx", DEFAULT_CHARSET), WatchOption.newBuilder()
+				.withPrefix(ByteSequence.from("/xxx", DEFAULT_CHARSET)).build(), listener);
+    synchronized (xxxx.class) {
+			while (true) {
+				xxxx.class.wait();
+			}
+		}
 
-To make the bug report accurate and easy to understand, please try to create bug reports that are:
+Second，the network of the computer which the watchClient in was down about 2 minutes.
 
-- Specific. Include as much details as possible: which version, what environment, what configuration, etc. If the bug is related to running the etcd server, please attach the etcd log (the starting log with etcd configuration is especially important).
+After 2 minutes, the network was ok. Then, the node was changed. But i can't receieve the change.  
+I have to restart my service if i want to receieve changes.
+Also, i fond that, there has 4 threads like 'grpc-default-worker-ELG-x-x', but there has 2 in normal.
 
-- Reproducible. Include the steps to reproduce the problem. We understand some issues might be hard to reproduce, please includes the steps that might lead to the problem. If possible, please attach the affected etcd data dir and stack strace to the bug report.
-
-- Isolated. Please try to isolate and reproduce the bug with minimum dependencies. It would significantly slow down the speed to fix a bug if too many dependencies are involved in a bug report. Debugging external systems that rely on etcd is out of scope, but we are happy to provide guidance in the right direction or help with using etcd itself.
-
-- Unique. Do not duplicate existing bug report.
-
-- Scoped. One bug per report. Do not follow up with another bug inside one report.
-
-It may be worthwhile to read [Elika Etemad’s article on filing good bug reports][filing-good-bugs] before creating a bug report.
-
-We might ask for further information to locate a bug. A duplicated bug report will be closed.
-
-## Frequently asked questions
-
-### How to get a stack trace
-
-``` bash
-$ kill -QUIT $PID
-```
-
-### How to get etcd version
-
-``` bash
-$ etcd --version
-```
-
-### How to get etcd configuration and log when it runs as systemd service ‘etcd2.service’
-
-``` bash
-$ sudo systemctl cat etcd2
-$ sudo journalctl -u etcd2
-```
-
-Due to an upstream systemd bug, journald may miss the last few log lines when its processes exit. If journalctl says etcd stopped without fatal or panic message, try `sudo journalctl -f -t etcd2` to get full log.
-
-[etcd-issue]: https://github.com/etcd-io/etcd/issues/new
-[filing-good-bugs]: http://fantasai.inkedblade.net/style/talks/filing-good-bugs/
